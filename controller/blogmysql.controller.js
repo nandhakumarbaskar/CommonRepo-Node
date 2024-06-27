@@ -1,13 +1,11 @@
 const blogModel = require("../model/blog.model")
+const pool = require("../config/mysql.db")
 
 const createBlog = async (req, res)=>{
     try{
-        const body = req.body
-        const blogObj = new blogModel({
-            title: body.title,
-            description: body.description
-        })
-        const result = await blogObj.save()
+        const {title, description} = req.body
+        const [result, row] = await pool.query(`insert into blog (title, blogDescription) values (?, ?)`, [title, description])
+        console.log("result: ", result, "row: ", row)
         if(result){
             res.status(201).send({
                 success: true,
@@ -31,7 +29,8 @@ const createBlog = async (req, res)=>{
 
 const getBlogs = async (req, res)=>{
     try{
-        const result = await blogModel.find({})
+        const [result, row] = await pool.query(`select * from blog`)
+        console.log("result:", result)
         if(result){
             res.status(200).send({
                 success: true,
@@ -55,7 +54,8 @@ const getBlogs = async (req, res)=>{
 
 const getBlogById = async (req, res)=>{
     try{
-        const result = await blogModel.findById(req.params.id)
+        const [result, row] = await pool.query(`select * from blog where id=?`, [req.params.id])
+        console.log("result: ", result, "row: ", row)
         if(result){
             res.status(200).send({
                 success: true,
@@ -79,7 +79,9 @@ const getBlogById = async (req, res)=>{
 
 const updateBlogById = async (req, res)=>{
     try{
-        const result = await blogModel.findByIdAndUpdate(req.params.id, req.body)
+        const { title, description } = req.body
+        const [result, row] = await pool.query(`update blog set title=?, blogDescription=? where id=?`, [title, description, req.params.id])
+        console.log("result: ", result, "row: ", row)
         if(result){
             res.status(200).send({
                 success: true,
@@ -103,7 +105,7 @@ const updateBlogById = async (req, res)=>{
 
 const removeBlogById = async (req, res)=>{
     try{
-        const result = await blogModel.findByIdAndDelete(req.params.id)
+        const [result, row] = await pool.query(`delete from blog where id= ?`, [req.params.id])
         if(result){
             res.status(200).send({
                 success: true,
@@ -127,7 +129,7 @@ const removeBlogById = async (req, res)=>{
 
 const removeAll = async (req, res)=>{
     try{
-        const result = await blogModel.deleteMany()
+        const [result, row] = await pool.query(`delete from blog`)
         if(result){
             res.status(200).send({
                 success: true,
